@@ -1,0 +1,728 @@
+!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Job Search Command Center</title>
+<style>
+:root{
+  --bg:#f5f6f8; --surface:#ffffff; --surface-2:#f0f2f5; --line:#dfe3e8; --text:#1c2733; --muted:#5f6b78;
+  --navy:#1f3a5f; --accent:#2e7d7a; --accent-soft:#e3f1f0;
+  --target:#3b6fb6; --applied:#2e7d7a; --interview:#c27a12; --offer:#2e7d32; --closed:#8a929b;
+  --danger:#b3261e; --danger-soft:#fbe4e2; --warn:#7a5a00; --warn-soft:#fff3cd; --ok-soft:#e3f4e1;
+  --shadow:0 1px 2px rgba(16,24,40,.06),0 1px 3px rgba(16,24,40,.08);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f141a; --surface:#171e26; --surface-2:#1e2731; --line:#2b3642; --text:#e6ebf0; --muted:#9aa6b2;
+    --navy:#8fb4e3; --accent:#5cc2bd; --accent-soft:#16302f;
+    --target:#7aa7e6; --applied:#5cc2bd; --interview:#e3a648; --offer:#6cc070; --closed:#7c8691;
+    --danger:#ff8a80; --danger-soft:#3a1d1b; --warn:#f0cf6b; --warn-soft:#352c10; --ok-soft:#1b3320;
+    --shadow:none;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f141a; --surface:#171e26; --surface-2:#1e2731; --line:#2b3642; --text:#e6ebf0; --muted:#9aa6b2;
+  --navy:#8fb4e3; --accent:#5cc2bd; --accent-soft:#16302f;
+  --target:#7aa7e6; --applied:#5cc2bd; --interview:#e3a648; --offer:#6cc070; --closed:#7c8691;
+  --danger:#ff8a80; --danger-soft:#3a1d1b; --warn:#f0cf6b; --warn-soft:#352c10; --ok-soft:#1b3320;
+  --shadow:none;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--text);font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+button,input,select,textarea{font:inherit;color:inherit}
+header{background:var(--surface);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+.wrap{max-width:1280px;margin:0 auto;padding:0 20px}
+.top{display:flex;align-items:center;gap:12px;padding:14px 0 8px;flex-wrap:wrap}
+.top h1{font-size:19px;margin:0;color:var(--navy);letter-spacing:-.01em}
+.top .sub{color:var(--muted);font-size:12px}
+.top .spacer{flex:1}
+nav{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+nav button{background:none;border:0;border-bottom:2px solid transparent;padding:9px 12px;color:var(--muted);cursor:pointer;white-space:nowrap;font-weight:500}
+nav button[aria-selected="true"]{color:var(--navy);border-color:var(--accent)}
+main.wrap{padding-top:20px;padding-bottom:60px}
+.btn{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:7px 12px;cursor:pointer}
+.btn:hover{background:var(--surface-2)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{filter:brightness(1.07)}
+.btn.small{padding:4px 9px;font-size:12px}
+.btn.danger{color:var(--danger)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:var(--shadow)}
+.card h2{font-size:14px;margin:0 0 12px;color:var(--navy)}
+.grid{display:grid;gap:16px}
+.kpis{grid-template-columns:repeat(4,1fr)}
+@media (max-width:760px){.kpis{grid-template-columns:repeat(2,1fr)}}
+.kpi .v{font-size:28px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.kpi .l{color:var(--muted);font-size:12px}
+.kpi.alert .v{color:var(--danger)}
+.two{grid-template-columns:1fr 1fr}
+@media (max-width:860px){.two{grid-template-columns:1fr}}
+.meter{height:8px;background:var(--surface-2);border-radius:99px;overflow:hidden;margin-top:8px}
+.meter>i{display:block;height:100%;background:var(--accent);border-radius:99px}
+.bars .row{display:grid;grid-template-columns:150px 1fr 36px;gap:10px;align-items:center;margin:6px 0}
+.bars .track{height:14px;background:var(--surface-2);border-radius:4px;overflow:hidden}
+.bars .track i{display:block;height:100%;border-radius:4px}
+.bars .n{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+.weeks{display:flex;align-items:flex-end;gap:8px;height:150px;padding-top:12px;position:relative}
+.weeks .col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:4px}
+.weeks .b{width:100%;max-width:38px;background:var(--accent);border-radius:4px 4px 0 0;min-height:2px}
+.weeks .lab{font-size:11px;color:var(--muted)}
+.weeks .cnt{font-size:11px;font-weight:600}
+.goal-line{position:absolute;left:0;right:0;border-top:1px dashed var(--muted);pointer-events:none}
+.goal-line span{position:absolute;right:0;top:-16px;font-size:11px;color:var(--muted);background:var(--surface);padding:0 4px}
+.list{list-style:none;margin:0;padding:0}
+.list li{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line)}
+.list li:last-child{border:0}
+.list .grow{flex:1;min-width:160px}
+.list .t{font-weight:600}
+.list .s{color:var(--muted);font-size:12px}
+.empty{color:var(--muted);font-size:13px;padding:8px 0}
+.pill{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:99px;white-space:nowrap}
+.p-Target{background:color-mix(in srgb,var(--target) 16%,transparent);color:var(--target)}
+.p-Applied{background:color-mix(in srgb,var(--applied) 16%,transparent);color:var(--applied)}
+.p-Interview{background:color-mix(in srgb,var(--interview) 18%,transparent);color:var(--interview)}
+.p-Offer{background:color-mix(in srgb,var(--offer) 16%,transparent);color:var(--offer)}
+.p-Closed{background:color-mix(in srgb,var(--closed) 18%,transparent);color:var(--closed)}
+.act-now{background:var(--danger-soft);color:var(--danger)}
+.act-soon{background:var(--warn-soft);color:var(--warn)}
+.act-ok{background:var(--surface-2);color:var(--muted)}
+/* board */
+.board{display:grid;grid-template-columns:repeat(5,minmax(220px,1fr));gap:12px;overflow-x:auto;padding-bottom:8px}
+.lane{background:var(--surface-2);border-radius:12px;padding:10px;min-height:280px;border:2px solid transparent}
+.lane.over{border-color:var(--accent)}
+.lane h3{font-size:12px;text-transform:uppercase;letter-spacing:.06em;margin:2px 4px 10px;display:flex;justify-content:space-between;color:var(--muted)}
+.lane h3 b{color:var(--text)}
+.jc{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--line);border-radius:8px;padding:10px;margin-bottom:8px;cursor:grab;box-shadow:var(--shadow)}
+.jc:active{cursor:grabbing}
+.jc .co{font-weight:600}
+.jc .ro{font-size:12px;color:var(--muted);margin-bottom:6px}
+.jc .meta{display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:11px;color:var(--muted)}
+.jc select{width:100%;margin-top:8px;font-size:12px;padding:4px;border:1px solid var(--line);border-radius:6px;background:var(--surface)}
+/* tables */
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.toolbar input,.toolbar select{padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+.toolbar .spacer{flex:1}
+.tablewrap{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+table{border-collapse:collapse;width:100%;min-width:900px}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);background:var(--surface-2);cursor:pointer;user-select:none;white-space:nowrap;position:sticky;top:0}
+tr.closed td{color:var(--muted)}
+tbody tr:hover{background:var(--surface-2)}
+td.num{text-align:right;font-variant-numeric:tabular-nums}
+.link{color:var(--accent);text-decoration:none}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px}
+/* forms */
+dialog{border:1px solid var(--line);border-radius:14px;padding:0;background:var(--surface);color:var(--text);width:min(760px,calc(100vw - 32px));box-shadow:0 20px 50px rgba(0,0,0,.25)}
+dialog::backdrop{background:rgba(10,15,20,.45)}
+.dhead{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid var(--line)}
+.dhead h2{margin:0;font-size:16px;color:var(--navy)}
+.dbody{padding:16px 18px;max-height:70vh;overflow:auto}
+.dfoot{display:flex;gap:8px;justify-content:flex-end;padding:12px 18px;border-top:1px solid var(--line)}
+.dfoot .spacer{flex:1}
+.form{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+@media (max-width:600px){.form{grid-template-columns:1fr}}
+.form label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted);font-weight:500}
+.form .full{grid-column:1/-1}
+.form input,.form select,.form textarea{padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--text);font-size:14px}
+.form textarea{min-height:80px;resize:vertical}
+.hint{font-size:12px;color:var(--muted)}
+.folder{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;background:var(--surface-2);border-radius:6px;padding:6px 8px;color:var(--text)}
+/* offers */
+.offers{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.offers .form{grid-template-columns:1fr}
+.calc{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
+.calc div{display:flex;justify-content:space-between;padding:3px 0;font-variant-numeric:tabular-nums}
+.calc .big{font-weight:700;font-size:16px;color:var(--navy)}
+/* steps */
+.steps{counter-reset:s;list-style:none;padding:0;margin:0;display:grid;gap:12px}
+.steps li{counter-increment:s;display:grid;grid-template-columns:36px 1fr;gap:12px;align-items:start}
+.steps li::before{content:counter(s);width:32px;height:32px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-weight:700}
+.steps b{display:block;margin-bottom:2px}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--navy);color:var(--surface);padding:9px 16px;border-radius:8px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:50}
+.toast.show{opacity:1}
+.hidden{display:none!important}
+.settings{display:flex;gap:16px;flex-wrap:wrap}
+.settings label{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
+.settings input{width:64px;padding:5px 8px;border:1px solid var(--line);border-radius:6px;background:var(--surface)}
+@media (max-width:600px){.wrap{padding:0 16px}.bars .row{grid-template-columns:110px 1fr 30px}}
+@media print{header nav,.toolbar,.btn{display:none!important}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="top">
+      <div>
+        <h1>Job Search Command Center</h1>
+        <div class="sub" id="today"></div>
+      </div>
+      <div class="spacer"></div>
+      <button class="btn primary" id="addJobTop">+ Add opportunity</button>
+      <button class="btn" id="exportJson" title="Download a backup of everything">Backup</button>
+      <button class="btn" id="importBtn" title="Restore from a backup file">Restore</button>
+      <button class="btn" id="themeBtn" aria-label="Toggle light or dark theme">Light / Dark</button>
+      <input type="file" id="importFile" accept=".json" class="hidden">
+    </div>
+    <nav role="tablist" id="tabs">
+      <button data-tab="dash" aria-selected="true">Dashboard</button>
+      <button data-tab="board">Pipeline Board</button>
+      <button data-tab="tracker">Tracker</button>
+      <button data-tab="interviews">Interviews</button>
+      <button data-tab="activity">Activity Log</button>
+      <button data-tab="offers">Offer Compare</button>
+      <button data-tab="how">How To Use</button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <!-- DASHBOARD -->
+  <section id="tab-dash">
+    <div class="grid kpis" id="kpis"></div>
+    <div class="grid two" style="margin-top:16px">
+      <div class="card">
+        <h2>Needs your attention</h2>
+        <ul class="list" id="attention"></ul>
+      </div>
+      <div class="card">
+        <h2>Upcoming interviews (next 14 days)</h2>
+        <ul class="list" id="upcoming"></ul>
+      </div>
+    </div>
+    <div class="grid two" style="margin-top:16px">
+      <div class="card">
+        <h2>Applications per week · last 8 weeks</h2>
+        <div class="weeks" id="weeks"></div>
+      </div>
+      <div class="card">
+        <h2>Pipeline by phase</h2>
+        <div class="bars" id="phaseBars"></div>
+      </div>
+    </div>
+    <div class="grid two" style="margin-top:16px">
+      <div class="card">
+        <h2>Detail by stage (matches your folders)</h2>
+        <div class="bars" id="stageBars"></div>
+      </div>
+      <div class="card">
+        <h2>Settings</h2>
+        <div class="settings">
+          <label>Weekly application goal <input type="number" min="1" id="setGoal"></label>
+          <label>Follow up after (business days) <input type="number" min="1" id="setFollow"></label>
+          <label>Treat as ghosted after (days) <input type="number" min="1" id="setGhost"></label>
+        </div>
+        <p class="hint" style="margin-top:14px">Everything saves automatically in this browser on this computer. Use <b>Backup</b> now and then. It downloads a file you can keep in the Command Center folder and load again with <b>Restore</b>, including on another computer or browser.</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn small" id="csvTracker">Export Tracker CSV (opens in Excel)</button>
+          <button class="btn small" id="csvActivity">Export Activity CSV</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BOARD -->
+  <section id="tab-board" class="hidden">
+    <p class="hint" style="margin-top:0">Drag a card to another column, or pick an exact stage from its dropdown. The folder to move it to appears when you open the card.</p>
+    <div class="board" id="board"></div>
+  </section>
+
+  <!-- TRACKER -->
+  <section id="tab-tracker" class="hidden">
+    <div class="toolbar">
+      <input type="search" id="q" placeholder="Search company, role, notes…" aria-label="Search">
+      <select id="fPhase" aria-label="Filter by phase"><option value="">All phases</option></select>
+      <select id="fAction" aria-label="Filter by action"><option value="">Any action</option><option>FOLLOW UP NOW</option><option>Follow up soon</option><option>Apply ASAP</option><option>Likely ghosted – close out?</option></select>
+      <label class="hint"><input type="checkbox" id="hideClosed"> Hide closed</label>
+      <div class="spacer"></div>
+      <button class="btn primary" id="addJob">+ Add opportunity</button>
+    </div>
+    <div class="tablewrap"><table id="trackerTable"><thead></thead><tbody></tbody></table></div>
+  </section>
+
+  <!-- INTERVIEWS -->
+  <section id="tab-interviews" class="hidden">
+    <div class="toolbar"><span class="hint">Past interviews without a thank-you are flagged. Pull your stories from <span class="mono">01 Master Resume/03 Interview Stories</span>.</span><div class="spacer"></div><button class="btn primary" id="addInt">+ Log interview</button></div>
+    <div class="tablewrap"><table id="intTable"><thead></thead><tbody></tbody></table></div>
+  </section>
+
+  <!-- ACTIVITY -->
+  <section id="tab-activity" class="hidden">
+    <div class="toolbar"><span class="hint">Every touchpoint: applications, follow-ups, calls, networking.</span><div class="spacer"></div><button class="btn primary" id="addAct">+ Log activity</button></div>
+    <div class="tablewrap"><table id="actTable"><thead></thead><tbody></tbody></table></div>
+  </section>
+
+  <!-- OFFERS -->
+  <section id="tab-offers" class="hidden">
+    <div class="card" style="margin-bottom:16px">
+      <div class="settings"><label>Current base salary $ <input type="number" id="curSalary" style="width:120px"></label></div>
+      <p class="hint" style="margin:8px 0 0">Year-1 value = base + bonus + sign-on + 401(k) match − your health premium − commute/work costs. Keep offer documents in <span class="mono">05 Offers</span>.</p>
+    </div>
+    <div class="offers" id="offers"></div>
+  </section>
+
+  <!-- HOW -->
+  <section id="tab-how" class="hidden">
+    <div class="card">
+      <h2>How this workflow runs</h2>
+      <p class="hint" style="margin-top:0">This page is the map, and the Command Center folders hold the documents. Keep the two in step.</p>
+      <ol class="steps">
+        <li><div><b>Spot a job</b>Add an opportunity with a <i>Target</i> stage and a priority. Save the posting PDF in <span class="mono">04 High Priority Targets/&lt;bucket&gt;</span>.</div></li>
+        <li><div><b>Tailor &amp; apply</b>Build the resume and cover letter from <span class="mono">01 Master Resume</span>. Copy <span class="mono">02 Applications Submitted/03 Company Name - Copy This One</span>, rename it, and file the posting, resume and letter in it.</div></li>
+        <li><div><b>Log it</b>Set the stage to <i>Applied</i> and enter the date applied. An "Applied" entry is added to the Activity Log for you, and a follow-up date appears.</div></li>
+        <li><div><b>Follow up</b>The Dashboard lists everything due. When you follow up or hear back, use <i>Log touch</i> on the card. It updates Last Contact and resets the clock.</div></li>
+        <li><div><b>Interviews</b>Move through Phone Screen → First → Final → Waiting Professionally. Log each conversation and send the thank-you.</div></li>
+        <li><div><b>Offers</b>Move to <i>Offer – Negotiating</i> and fill a column in Offer Compare. Save the paperwork in <span class="mono">05 Offers</span>.</div></li>
+        <li><div><b>Close out</b>Pick the matching Closed stage: Filled, Rejected, Withdrawn, Ghosted or Vanished. After the ghost window, the page will suggest closing it.</div></li>
+        <li><div><b>Move the folder</b>Each opportunity shows the Command Center folder it belongs in for its current stage.</div></li>
+        <li><div><b>Friday review</b>Check this week's applications against your goal, your interview rate and anything overdue. Note lessons in <span class="mono">99 Archive - Search For Job/01 Lessons From The Adventure</span>. Then click <b>Backup</b>.</div></li>
+      </ol>
+    </div>
+  </section>
+</main>
+
+<!-- Job dialog -->
+<dialog id="jobDlg">
+  <form method="dialog" id="jobForm">
+    <div class="dhead"><h2 id="jobTitle">Opportunity</h2><button class="btn small" value="cancel" formnovalidate aria-label="Close">✕</button></div>
+    <div class="dbody">
+      <div class="form">
+        <label>Company<input name="company" required></label>
+        <label>Role<input name="role" required></label>
+        <label>Stage<select name="stage" id="stageSel"></select></label>
+        <label>Priority<select name="priority"><option value=""></option><option>High</option><option>Medium</option><option>Low</option></select></label>
+        <label>Date found<input type="date" name="found"></label>
+        <label>Date applied<input type="date" name="applied"></label>
+        <label>Last contact<input type="date" name="lastContact"></label>
+        <label>Work type<select name="workType"><option value=""></option><option>Remote</option><option>Hybrid</option><option>On-site</option></select></label>
+        <label>Location<input name="location"></label>
+        <label>Source<select name="source"><option value=""></option><option>LinkedIn</option><option>Indeed</option><option>Company Careers Site</option><option>Referral</option><option>Recruiter</option><option>Networking</option><option>Internal Posting</option><option>Other</option></select></label>
+        <label>Salary min ($)<input type="number" name="salMin" step="1000"></label>
+        <label>Salary max ($)<input type="number" name="salMax" step="1000"></label>
+        <label>Contact name<input name="contact"></label>
+        <label>Contact email / phone<input name="contactInfo"></label>
+        <label>Resume version sent<input name="resume"></label>
+        <label>Cover letter?<select name="cover"><option value=""></option><option>Yes</option><option>No</option></select></label>
+        <label class="full">Job posting URL<input type="url" name="url"></label>
+        <label class="full">Notes<textarea name="notes"></textarea></label>
+        <div class="full"><div class="hint">Command Center folder for this stage</div><div class="folder" id="folderHint">—</div></div>
+      </div>
+    </div>
+    <div class="dfoot">
+      <button class="btn danger" id="delJob" value="delete" type="button">Delete</button>
+      <div class="spacer"></div>
+      <button class="btn" value="cancel" formnovalidate>Cancel</button>
+      <button class="btn primary" value="save">Save</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Interview dialog -->
+<dialog id="intDlg">
+  <form method="dialog" id="intForm">
+    <div class="dhead"><h2>Interview</h2><button class="btn small" value="cancel" formnovalidate aria-label="Close">✕</button></div>
+    <div class="dbody"><div class="form">
+      <label>Date<input type="date" name="date" required></label>
+      <label>Time<input type="time" name="time"></label>
+      <label>Company<select name="jobId" id="intJob" required></select></label>
+      <label>Round<select name="round"><option>Phone Screen</option><option>First Interview</option><option>Second Interview</option><option>Panel</option><option>Final Interview</option><option>Other</option></select></label>
+      <label>Format<select name="format"><option>Phone</option><option>Video</option><option>On-site</option></select></label>
+      <label>Thank-you sent?<select name="thanks"><option>No</option><option>Yes</option></select></label>
+      <label>Interviewer(s)<input name="who"></label>
+      <label>Their title<input name="title"></label>
+      <label class="full">Stories used<input name="stories"></label>
+      <label class="full">Questions they asked<textarea name="questions"></textarea></label>
+      <label class="full">Next step / promised date<input name="next"></label>
+      <label class="full">Notes<textarea name="notes"></textarea></label>
+    </div></div>
+    <div class="dfoot"><button class="btn danger" id="delInt" type="button">Delete</button><div class="spacer"></div><button class="btn" value="cancel" formnovalidate>Cancel</button><button class="btn primary" value="save">Save</button></div>
+  </form>
+</dialog>
+
+<!-- Activity dialog -->
+<dialog id="actDlg">
+  <form method="dialog" id="actForm">
+    <div class="dhead"><h2>Activity</h2><button class="btn small" value="cancel" formnovalidate aria-label="Close">✕</button></div>
+    <div class="dbody"><div class="form">
+      <label>Date<input type="date" name="date" required></label>
+      <label>Company<select name="jobId" id="actJob"></select></label>
+      <label>Activity<select name="type"><option>Applied</option><option>Follow-up Email</option><option>Phone Call</option><option>LinkedIn Message</option><option>Networking Chat</option><option>Thank-You Note</option><option>Recruiter Contact</option><option>Other</option></select></label>
+      <label>Contact<input name="contact"></label>
+      <label class="full">Outcome / notes<textarea name="notes"></textarea></label>
+      <label class="full" style="flex-direction:row;align-items:center;gap:8px;color:var(--text)"><input type="checkbox" name="touch" checked> Also update this opportunity's Last Contact date</label>
+    </div></div>
+    <div class="dfoot"><button class="btn danger" id="delAct" type="button">Delete</button><div class="spacer"></div><button class="btn" value="cancel" formnovalidate>Cancel</button><button class="btn primary" value="save">Save</button></div>
+  </form>
+</dialog>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(() => {
+const KEY = "jobSearchCommandCenter.v1";
+const STAGES = [
+  ["Target - Apply ASAP","Target","04 High Priority Targets/01 Apply ASAP"],
+  ["Target - Strong Possibility","Target","04 High Priority Targets/02 Strong Possibilities"],
+  ["Target - Needs Research","Target","04 High Priority Targets/03 Interesting | Requires Research"],
+  ["Applied","Applied","02 Applications Submitted"],
+  ["Phone Screen","Interview","03 Interview Pipeline/01 Phone Screen"],
+  ["First Interview","Interview","03 Interview Pipeline/02 First Interview"],
+  ["Final Interview","Interview","03 Interview Pipeline/03 Final Interview"],
+  ["Waiting Professionally","Interview","03 Interview Pipeline/04 Waiting Professionally"],
+  ["Offer - Negotiating","Offer","05 Offers/03 Negotiation"],
+  ["Offer - Accepted (Promised Land)","Offer","05 Offers/04 The Promised Land"],
+  ["Closed - Position Filled","Closed","06 Closed Out/01 Position Filled"],
+  ["Closed - Rejected (Their Loss)","Closed","06 Closed Out/02 Rejected - Their Loss"],
+  ["Closed - Withdrawn by Andy","Closed","06 Closed Out/03 Withdrawn By Andy"],
+  ["Closed - Ghosted","Closed","06 Closed Out/04 Ghosted Into The Void"],
+  ["Closed - Posting Vanished","Closed","06 Closed Out/05 Posting Vanished Mysteriously"],
+];
+const PHASES = ["Target","Applied","Interview","Offer","Closed"];
+const PHASE_DEFAULT = {Target:"Target - Apply ASAP",Applied:"Applied",Interview:"Phone Screen",Offer:"Offer - Negotiating",Closed:"Closed - Ghosted"};
+const stageInfo = s => STAGES.find(x => x[0] === s) || [s,"",""];
+const phaseOf = s => stageInfo(s)[1];
+const uid = () => Math.random().toString(36).slice(2,10);
+
+const SEED = {
+  settings:{goal:5, follow:5, ghost:30, curSalary:""},
+  jobs:[
+    {id:"allone", company:"AllOne Health", role:"IT Project Manager", stage:"Applied", priority:"", found:"", applied:"2026-10-06", lastContact:"", workType:"", location:"", source:"", salMin:"", salMax:"", contact:"", contactInfo:"", resume:"Andrew_Jafuta_AllOne_IT_Project_Manager_Resume.pdf", cover:"Yes", url:"", notes:"Resume + cover letter dated 10/06/2026 in the application folder. No response saved yet. Add the posting PDF to 01 Job Posting."},
+    {id:"ting", company:"Ting Labs", role:"Program Manager, Ting Data Products", stage:"Applied", priority:"", found:"", applied:"2026-10-08", lastContact:"2026-10-08", workType:"Remote", location:"Remote (United States)", source:"Company Careers Site", salMin:85000, salMax:100000, contact:"", contactInfo:"", resume:"Andrew_Jafuta_Ting_Program_Manager_Resume.pdf", cover:"Yes", url:"https://ats.rippling.com/whisker-labs-careers/jobs/ac4a3793-1755-4f4b-ae51-1c42b20fc681", notes:"Auto-acknowledgment from Rippling ATS 10/8 (no-reply). Reports to Director of Program Management. Pay range from posting."}
+  ],
+  interviews:[],
+  activity:[
+    {id:uid(), date:"2026-10-06", jobId:"allone", type:"Applied", contact:"", notes:"Submitted resume + cover letter for IT Project Manager."},
+    {id:uid(), date:"2026-10-08", jobId:"ting", type:"Applied", contact:"", notes:"Applied via Rippling careers site for Program Manager, Ting Data Products."},
+    {id:uid(), date:"2026-10-08", jobId:"ting", type:"Other", contact:"Ting Labs (no-reply)", notes:"Auto-acknowledgment received. Saved to 04 Application Responses."}
+  ],
+  offers:[{},{},{}]
+};
+
+let db;
+function load(){
+  try { const raw = localStorage.getItem(KEY); if (raw) { db = JSON.parse(raw); } } catch(e) {}
+  if (!db) db = structuredClone(SEED);
+  normalize();
+}
+function normalize(){
+  db.settings = Object.assign({goal:5,follow:5,ghost:30,curSalary:""}, db.settings||{});
+  db.offers = db.offers && db.offers.length ? db.offers : [{},{},{}];
+  db.interviews ||= []; db.activity ||= []; db.jobs ||= [];
+}
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(db)); } catch(e) {} }
+
+// ---------- date helpers ----------
+const pd = s => { if (!s) return null; const [y,m,d] = s.split("-").map(Number); return new Date(y, m-1, d); };
+const iso = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+const today = () => { const t = new Date(); return new Date(t.getFullYear(), t.getMonth(), t.getDate()); };
+const days = (a,b) => Math.round((a - b) / 86400000);
+const fmt = s => { const d = pd(s); return d ? d.toLocaleDateString(undefined,{month:"short",day:"numeric"}) : ""; };
+const money = n => (n === "" || n == null || isNaN(n)) ? "" : "$" + Math.round(Number(n)).toLocaleString();
+function addWorkdays(d, n){ const r = new Date(d); let k = 0; while (k < n){ r.setDate(r.getDate()+1); const w = r.getDay(); if (w !== 0 && w !== 6) k++; } return r; }
+const weekStart = d => { const r = new Date(d); const w = (r.getDay()+6)%7; r.setDate(r.getDate()-w); return r; };
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+// ---------- derived fields (same rules as the Excel tracker) ----------
+function derive(j){
+  const phase = phaseOf(j.stage);
+  const a = pd(j.applied), lc = pd(j.lastContact), t = today();
+  let due = null;
+  if (a && !["Closed","Target","Offer",""].includes(phase)) due = addWorkdays(lc && lc > a ? lc : a, Number(db.settings.follow)||5);
+  const since = (a && phase !== "Closed") ? days(t, a) : null;
+  let action = "";
+  if (phase === "Target") action = j.priority === "High" ? "Apply ASAP" : "Research & tailor resume";
+  else if (phase === "Offer") action = "Review offer / negotiate";
+  else if (phase === "Applied" && since != null && since >= (Number(db.settings.ghost)||30)) action = "Likely ghosted – close out?";
+  else if (due) action = due <= t ? "FOLLOW UP NOW" : (days(due, t) <= 2 ? "Follow up soon" : "Wait");
+  const gotInterview = a ? (phase === "Interview" || phase === "Offer" || db.interviews.some(i => i.jobId === j.id)) : null;
+  return {phase, due, since, action, gotInterview, folder: stageInfo(j.stage)[2]};
+}
+const actClass = a => a === "FOLLOW UP NOW" ? "act-now" : (["Follow up soon","Apply ASAP","Likely ghosted – close out?","Review offer / negotiate"].includes(a) ? "act-soon" : "act-ok");
+const jobName = id => { const j = db.jobs.find(x => x.id === id); return j ? j.company : "—"; };
+
+// ---------- rendering ----------
+function renderDash(){
+  const t = today(), ws = weekStart(t), we = new Date(ws); we.setDate(we.getDate()+7);
+  const D = db.jobs.map(j => ({j, d:derive(j)}));
+  const applied = D.filter(x => x.j.applied);
+  const active = D.filter(x => ["Applied","Interview"].includes(x.d.phase)).length;
+  const ivRate = applied.length ? applied.filter(x => x.d.gotInterview).length / applied.length : 0;
+  const due = D.filter(x => x.d.action === "FOLLOW UP NOW").length;
+  const in7 = db.interviews.filter(i => { const d = pd(i.date); return d && d >= t && days(d,t) <= 7; }).length;
+  const thisWeek = applied.filter(x => { const d = pd(x.j.applied); return d >= ws && d < we; }).length;
+  const goal = Number(db.settings.goal)||5;
+  const actWeek = db.activity.filter(a => { const d = pd(a.date); return d && d >= ws && d < we; }).length;
+  const k = [
+    ["Opportunities tracked", db.jobs.length],
+    ["Applications submitted", applied.length],
+    ["Active (applied + interviewing)", active],
+    ["Interview rate", Math.round(ivRate*100)+"%"],
+    ["Follow-ups due now", due, due>0],
+    ["Interviews in next 7 days", in7],
+    ["Activities logged this week", actWeek],
+  ];
+  document.getElementById("kpis").innerHTML =
+    `<div class="card kpi"><div class="v">${thisWeek}<span style="font-size:15px;color:var(--muted);font-weight:500"> / ${goal}</span></div><div class="l">Applications this week</div><div class="meter"><i style="width:${Math.min(100,thisWeek/goal*100)}%"></i></div></div>` +
+    k.map(([l,v,alert]) => `<div class="card kpi ${alert?"alert":""}"><div class="v">${v}</div><div class="l">${l}</div></div>`).join("");
+
+  const att = D.filter(x => x.d.action && x.d.action !== "Wait")
+    .sort((a,b) => ["FOLLOW UP NOW","Likely ghosted – close out?","Review offer / negotiate","Apply ASAP","Follow up soon","Research & tailor resume"].indexOf(a.d.action) - ["FOLLOW UP NOW","Likely ghosted – close out?","Review offer / negotiate","Apply ASAP","Follow up soon","Research & tailor resume"].indexOf(b.d.action));
+  const waiting = D.filter(x => x.d.action === "Wait");
+  document.getElementById("attention").innerHTML = att.length ? att.map(x => `
+    <li><div class="grow"><div class="t">${esc(x.j.company)}</div><div class="s">${esc(x.j.role)}${x.d.due?` · follow-up ${x.d.due.toLocaleDateString(undefined,{month:"short",day:"numeric"})}`:""}</div></div>
+    <span class="pill ${actClass(x.d.action)}">${esc(x.d.action)}</span>
+    <button class="btn small" data-touch="${x.j.id}">Log touch</button><button class="btn small" data-edit="${x.j.id}">Open</button></li>`).join("")
+    : `<li class="empty">Nothing urgent. ${waiting.length ? `${waiting.length} application${waiting.length>1?"s are":" is"} waiting. Next follow-up: ${waiting.map(x=>x.d.due).sort((a,b)=>a-b)[0].toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"})}.` : ""}</li>`;
+
+  const up = db.interviews.filter(i => { const d = pd(i.date); return d && d >= t && days(d,t) <= 14; }).sort((a,b) => a.date.localeCompare(b.date));
+  document.getElementById("upcoming").innerHTML = up.length ? up.map(i => `
+    <li><div class="grow"><div class="t">${esc(jobName(i.jobId))} · ${esc(i.round)}</div><div class="s">${fmt(i.date)}${i.time?" at "+esc(i.time):""} · ${esc(i.format||"")}${i.who?" · "+esc(i.who):""}</div></div><button class="btn small" data-int="${i.id}">Open</button></li>`).join("")
+    : `<li class="empty">No interviews on the calendar yet. Log one from the Interviews tab when it's booked.</li>`;
+
+  // weeks
+  const weeks = [];
+  for (let n = 7; n >= 0; n--){ const s = new Date(ws); s.setDate(s.getDate()-7*n); const e = new Date(s); e.setDate(e.getDate()+7);
+    weeks.push({s, c: applied.filter(x => { const d = pd(x.j.applied); return d >= s && d < e; }).length}); }
+  const max = Math.max(goal, ...weeks.map(w => w.c), 1);
+  document.getElementById("weeks").innerHTML = `<div class="goal-line" style="bottom:calc(${goal/max} * (100% - 40px) + 28px)"><span>goal ${goal}</span></div>` +
+    weeks.map(w => `<div class="col" title="Week of ${w.s.toLocaleDateString()}: ${w.c}"><span class="cnt">${w.c||""}</span><div class="b" style="height:calc(${w.c/max} * (100% - 40px))"></div><span class="lab">${w.s.toLocaleDateString(undefined,{month:"numeric",day:"numeric"})}</span></div>`).join("");
+
+  const pc = PHASES.map(p => [p, D.filter(x => x.d.phase === p).length]);
+  const pm = Math.max(1, ...pc.map(x=>x[1]));
+  document.getElementById("phaseBars").innerHTML = pc.map(([p,c]) => `<div class="row"><span>${p}</span><div class="track"><i style="width:${c/pm*100}%;background:var(--${p.toLowerCase()})"></i></div><span class="n">${c}</span></div>`).join("");
+  const sc = STAGES.map(s => [s[0], s[1], db.jobs.filter(j => j.stage === s[0]).length]);
+  const sm = Math.max(1, ...sc.map(x=>x[2]));
+  document.getElementById("stageBars").innerHTML = sc.map(([s,p,c]) => `<div class="row" style="${c?"":"opacity:.55"}"><span style="font-size:12px">${esc(s)}</span><div class="track"><i style="width:${c/sm*100}%;background:var(--${p.toLowerCase()})"></i></div><span class="n">${c}</span></div>`).join("");
+
+  setGoal.value = db.settings.goal; setFollow.value = db.settings.follow; setGhost.value = db.settings.ghost;
+}
+
+function renderBoard(){
+  const b = document.getElementById("board");
+  b.innerHTML = PHASES.map(p => {
+    const jobs = db.jobs.filter(j => phaseOf(j.stage) === p);
+    return `<div class="lane" data-phase="${p}"><h3>${p} <b>${jobs.length}</b></h3>${jobs.map(j => { const d = derive(j);
+      return `<div class="jc" draggable="true" data-id="${j.id}" style="border-left-color:var(--${p.toLowerCase()})">
+        <div class="co">${esc(j.company)}</div><div class="ro">${esc(j.role)}</div>
+        <div class="meta">${j.applied?`Applied ${fmt(j.applied)}`:""}${d.since!=null?` · ${d.since}d`:""}${d.action&&d.action!=="Wait"?` <span class="pill ${actClass(d.action)}">${esc(d.action)}</span>`:""}</div>
+        <select data-stage="${j.id}" aria-label="Stage">${STAGES.map(s => `<option ${s[0]===j.stage?"selected":""}>${s[0]}</option>`).join("")}</select>
+      </div>`; }).join("") || `<div class="empty" style="padding:4px">—</div>`}</div>`;
+  }).join("");
+}
+
+const TCOLS = [
+  ["company","Company"],["role","Role"],["stage","Stage"],["applied","Applied"],["lastContact","Last contact"],
+  ["_due","Follow-up due"],["_action","Next action"],["_since","Days"],["_iv","Interview?"],["workType","Type"],["_sal","Salary"],["source","Source"]
+];
+let sortKey = "applied", sortDir = -1;
+function renderTracker(){
+  const tbl = document.getElementById("trackerTable");
+  tbl.tHead.innerHTML = `<tr>${TCOLS.map(([k,l]) => `<th data-sort="${k}">${l}${sortKey===k?(sortDir>0?" ▲":" ▼"):""}</th>`).join("")}</tr>`;
+  const q = document.getElementById("q").value.toLowerCase(), fp = fPhase.value, fa = fAction.value, hc = hideClosed.checked;
+  let rows = db.jobs.map(j => ({j, d:derive(j)})).filter(({j,d}) =>
+    (!q || [j.company,j.role,j.notes,j.location,j.contact].join(" ").toLowerCase().includes(q)) &&
+    (!fp || d.phase === fp) && (!fa || d.action === fa) && (!hc || d.phase !== "Closed"));
+  const val = ({j,d},k) => k==="_due"?(d.due?d.due.getTime():0):k==="_action"?d.action:k==="_since"?(d.since??-1):k==="_iv"?String(d.gotInterview):k==="_sal"?Number(j.salMax||j.salMin||0):(j[k]||"");
+  rows.sort((a,b) => { const x = val(a,sortKey), y = val(b,sortKey); return (x>y?1:x<y?-1:0)*sortDir; });
+  tbl.tBodies[0].innerHTML = rows.length ? rows.map(({j,d}) => `<tr class="${d.phase==="Closed"?"closed":""}" data-edit="${j.id}" style="cursor:pointer">
+    <td><b>${esc(j.company)}</b>${j.priority?` <span class="hint">· ${esc(j.priority)}</span>`:""}</td>
+    <td>${j.url?`<a class="link" href="${esc(j.url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${esc(j.role)} ↗</a>`:esc(j.role)}</td>
+    <td><span class="pill p-${d.phase}">${esc(j.stage)}</span></td>
+    <td>${fmt(j.applied)}</td><td>${fmt(j.lastContact)}</td>
+    <td>${d.due?d.due.toLocaleDateString(undefined,{month:"short",day:"numeric"}):""}</td>
+    <td>${d.action?`<span class="pill ${actClass(d.action)}">${esc(d.action)}</span>`:""}</td>
+    <td class="num">${d.since??""}</td><td>${d.gotInterview==null?"":d.gotInterview?"Yes":"No"}</td>
+    <td>${esc(j.workType)}</td><td class="num">${j.salMin||j.salMax?`${money(j.salMin)}${j.salMax?"–"+money(j.salMax):""}`:""}</td><td>${esc(j.source)}</td></tr>`).join("")
+    : `<tr><td colspan="${TCOLS.length}" class="empty">No matches.</td></tr>`;
+}
+
+function renderInterviews(){
+  const tbl = document.getElementById("intTable"), t = today();
+  tbl.tHead.innerHTML = `<tr><th>Date</th><th>Company</th><th>Round</th><th>Format</th><th>Interviewer(s)</th><th>Stories used</th><th>Thank-you</th><th>Next step</th></tr>`;
+  const rows = [...db.interviews].sort((a,b) => b.date.localeCompare(a.date));
+  tbl.tBodies[0].innerHTML = rows.length ? rows.map(i => { const d = pd(i.date); const overdue = d && d < t && i.thanks !== "Yes"; const soon = d && d >= t && days(d,t) <= 7;
+    return `<tr data-int="${i.id}" style="cursor:pointer${soon?";background:var(--warn-soft)":""}"><td>${fmt(i.date)}${i.time?" "+esc(i.time):""}</td><td><b>${esc(jobName(i.jobId))}</b></td><td>${esc(i.round)}</td><td>${esc(i.format)}</td><td>${esc(i.who)}${i.title?`<div class="hint">${esc(i.title)}</div>`:""}</td><td>${esc(i.stories)}</td><td>${overdue?`<span class="pill act-now">Send thank-you</span>`:esc(i.thanks)}</td><td>${esc(i.next)}</td></tr>`; }).join("")
+    : `<tr><td colspan="8" class="empty">No interviews logged yet.</td></tr>`;
+}
+
+function renderActivity(){
+  const tbl = document.getElementById("actTable");
+  tbl.tHead.innerHTML = `<tr><th>Date</th><th>Company</th><th>Activity</th><th>Contact</th><th>Outcome / notes</th></tr>`;
+  const rows = [...db.activity].sort((a,b) => b.date.localeCompare(a.date));
+  tbl.tBodies[0].innerHTML = rows.length ? rows.map(a => `<tr data-act="${a.id}" style="cursor:pointer"><td>${fmt(a.date)}</td><td><b>${esc(jobName(a.jobId))}</b></td><td>${esc(a.type)}</td><td>${esc(a.contact)}</td><td>${esc(a.notes)}</td></tr>`).join("")
+    : `<tr><td colspan="5" class="empty">No activity yet.</td></tr>`;
+}
+
+const OFIELDS = [["company","Company","text"],["role","Role","text"],["base","Base salary ($)","number"],["bonusPct","Target bonus (%)","number"],["signOn","Sign-on bonus ($)","number"],["match","401(k) match (% of base)","number"],["premium","Your annual health premium ($)","number"],["pto","PTO days","number"],["commute","Annual commute / work costs ($)","number"],["workType","Work type","text"],["start","Proposed start","date"],["deadline","Offer deadline","date"]];
+function renderOffers(){
+  curSalary.value = db.settings.curSalary || "";
+  document.getElementById("offers").innerHTML = db.offers.map((o,i) => {
+    const n = k => Number(o[k])||0, base = n("base");
+    const bonus = base*n("bonusPct")/100, match = base*n("match")/100;
+    const y1 = base + bonus + n("signOn") + match - n("premium") - n("commute");
+    const cur = Number(db.settings.curSalary)||0;
+    const dl = pd(o.deadline);
+    return `<div class="card"><h2>Offer ${i+1}${o.company?" · "+esc(o.company):""}</h2><div class="form">${OFIELDS.map(([k,l,t]) => `<label>${l}<input type="${t}" data-offer="${i}" data-k="${k}" value="${esc(o[k]??"")}"></label>`).join("")}</div>
+      <div class="calc">${base?`<div><span>Bonus</span><span>${money(bonus)}</span></div><div><span>401(k) match</span><span>${money(match)}</span></div>
+      <div class="big"><span>Year-1 total value</span><span>${money(y1)}</span></div><div><span>Ongoing annual (no sign-on)</span><span>${money(y1-n("signOn"))}</span></div>
+      ${cur?`<div><span>Base vs current</span><span>${((base/cur-1)*100).toFixed(1)}%</span></div>`:""}
+      ${dl?`<div><span>Days to deadline</span><span>${days(dl,today())}</span></div>`:""}`:`<span class="hint">Enter a base salary to see the totals.</span>`}</div></div>`;
+  }).join("");
+}
+
+function renderAll(){ renderDash(); renderBoard(); renderTracker(); renderInterviews(); renderActivity(); renderOffers(); }
+
+// ---------- dialogs ----------
+const stageSel = document.getElementById("stageSel");
+stageSel.innerHTML = PHASES.map(p => `<optgroup label="${p}">${STAGES.filter(s=>s[1]===p).map(s=>`<option>${s[0]}</option>`).join("")}</optgroup>`).join("");
+stageSel.addEventListener("change", () => folderHint.textContent = stageInfo(stageSel.value)[2]);
+document.getElementById("fPhase").innerHTML += PHASES.map(p=>`<option>${p}</option>`).join("");
+
+let editingJob = null;
+function openJob(id){
+  const f = document.getElementById("jobForm"); editingJob = id || null;
+  const j = id ? db.jobs.find(x => x.id === id) : {stage:"Target - Apply ASAP", found: iso(today())};
+  for (const el of f.elements) if (el.name) el.value = j[el.name] ?? "";
+  folderHint.textContent = stageInfo(j.stage)[2];
+  jobTitle.textContent = id ? j.company : "New opportunity";
+  delJob.classList.toggle("hidden", !id);
+  jobDlg.showModal();
+}
+jobDlg.addEventListener("close", () => {
+  if (jobDlg.returnValue !== "save") return;
+  const f = document.getElementById("jobForm"), o = {};
+  for (const el of f.elements) if (el.name) o[el.name] = el.type === "number" ? (el.value === "" ? "" : Number(el.value)) : el.value.trim();
+  if (editingJob){
+    const j = db.jobs.find(x => x.id === editingJob);
+    const wasApplied = !!j.applied; Object.assign(j, o);
+    if (!wasApplied && j.applied) autoLogApplied(j);
+  } else {
+    const j = Object.assign({id:uid()}, o); db.jobs.push(j);
+    if (j.applied) autoLogApplied(j);
+  }
+  save(); renderAll(); toast("Saved");
+});
+function autoLogApplied(j){ db.activity.push({id:uid(), date:j.applied, jobId:j.id, type:"Applied", contact:"", notes:`Applied for ${j.role}.`}); }
+delJob.onclick = () => { if (!editingJob) return; const j = db.jobs.find(x=>x.id===editingJob);
+  if (!confirmInline(delJob, `Delete ${j.company}?`)) return;
+  db.jobs = db.jobs.filter(x => x.id !== editingJob); db.interviews = db.interviews.filter(i => i.jobId !== editingJob); db.activity = db.activity.filter(a => a.jobId !== editingJob);
+  jobDlg.close(); save(); renderAll(); toast("Deleted"); };
+
+// two-click confirm (avoids blocking browser dialogs)
+function confirmInline(btn, msg){
+  if (btn.dataset.armed === "1"){ btn.dataset.armed = ""; btn.textContent = "Delete"; return true; }
+  btn.dataset.armed = "1"; btn.textContent = "Click again to confirm";
+  setTimeout(() => { btn.dataset.armed = ""; btn.textContent = "Delete"; }, 3000); return false;
+}
+
+const jobOptions = (sel, blank) => sel.innerHTML = (blank?`<option value="">— General —</option>`:"") + [...db.jobs].sort((a,b)=>a.company.localeCompare(b.company)).map(j => `<option value="${j.id}">${esc(j.company)} — ${esc(j.role)}</option>`).join("");
+
+let editingInt = null;
+function openInt(id, jobId){
+  jobOptions(intJob); editingInt = id || null;
+  const i = id ? db.interviews.find(x=>x.id===id) : {date: iso(today()), jobId: jobId || db.jobs[0]?.id, round:"Phone Screen", format:"Video", thanks:"No"};
+  const f = document.getElementById("intForm"); for (const el of f.elements) if (el.name) el.value = i[el.name] ?? "";
+  delInt.classList.toggle("hidden", !id); intDlg.showModal();
+}
+intDlg.addEventListener("close", () => {
+  if (intDlg.returnValue !== "save") return;
+  const f = document.getElementById("intForm"), o = {}; for (const el of f.elements) if (el.name) o[el.name] = el.value.trim();
+  if (editingInt) Object.assign(db.interviews.find(x=>x.id===editingInt), o);
+  else {
+    db.interviews.push(Object.assign({id:uid()}, o));
+    const j = db.jobs.find(x => x.id === o.jobId);
+    if (j && ["Applied","Target"].includes(phaseOf(j.stage))) { j.stage = o.round === "Final Interview" ? "Final Interview" : (o.round === "Phone Screen" ? "Phone Screen" : "First Interview"); toast(`${j.company} moved to ${j.stage}. Move its folder to ${stageInfo(j.stage)[2]}`); }
+  }
+  save(); renderAll();
+});
+delInt.onclick = () => { if (!confirmInline(delInt)) return; db.interviews = db.interviews.filter(x=>x.id!==editingInt); intDlg.close(); save(); renderAll(); };
+
+let editingAct = null;
+function openAct(id, jobId){
+  jobOptions(actJob, true); editingAct = id || null;
+  const a = id ? db.activity.find(x=>x.id===id) : {date: iso(today()), jobId: jobId || "", type:"Follow-up Email", touch:true};
+  const f = document.getElementById("actForm"); for (const el of f.elements) if (el.name && el.type !== "checkbox") el.value = a[el.name] ?? "";
+  f.elements.touch.checked = !id; delAct.classList.toggle("hidden", !id); actDlg.showModal();
+}
+actDlg.addEventListener("close", () => {
+  if (actDlg.returnValue !== "save") return;
+  const f = document.getElementById("actForm"), o = {}; for (const el of f.elements) if (el.name && el.type !== "checkbox") o[el.name] = el.value.trim();
+  if (editingAct) Object.assign(db.activity.find(x=>x.id===editingAct), o); else db.activity.push(Object.assign({id:uid()}, o));
+  if (f.elements.touch.checked && o.jobId){ const j = db.jobs.find(x=>x.id===o.jobId); if (j && (!j.lastContact || o.date > j.lastContact)) j.lastContact = o.date; }
+  save(); renderAll(); toast("Logged");
+});
+delAct.onclick = () => { if (!confirmInline(delAct)) return; db.activity = db.activity.filter(x=>x.id!==editingAct); actDlg.close(); save(); renderAll(); };
+
+// ---------- events ----------
+document.getElementById("tabs").addEventListener("click", e => {
+  const b = e.target.closest("button[data-tab]"); if (!b) return;
+  document.querySelectorAll("#tabs button").forEach(x => x.setAttribute("aria-selected", x === b));
+  document.querySelectorAll("main > section").forEach(s => s.classList.toggle("hidden", s.id !== "tab-"+b.dataset.tab));
+  try { localStorage.setItem(KEY+".tab", b.dataset.tab); } catch(e) {}
+});
+document.body.addEventListener("click", e => {
+  const ed = e.target.closest("[data-edit]"); if (ed && !e.target.closest("select")) return openJob(ed.dataset.edit);
+  const it = e.target.closest("[data-int]"); if (it) return openInt(it.dataset.int);
+  const ac = e.target.closest("[data-act]"); if (ac) return openAct(ac.dataset.act);
+  const tc = e.target.closest("[data-touch]"); if (tc) return openAct(null, tc.dataset.touch);
+  const th = e.target.closest("th[data-sort]"); if (th){ const k = th.dataset.sort; sortDir = sortKey === k ? -sortDir : 1; sortKey = k; renderTracker(); }
+  const jc = e.target.closest(".jc"); if (jc && !e.target.closest("select")) openJob(jc.dataset.id);
+});
+document.body.addEventListener("change", e => {
+  if (e.target.dataset.stage){ const j = db.jobs.find(x=>x.id===e.target.dataset.stage); setStage(j, e.target.value); }
+});
+document.body.addEventListener("input", e => {
+  const t = e.target;
+  if (t.dataset.offer != null){ db.offers[t.dataset.offer][t.dataset.k] = t.value; save(); clearTimeout(t._tm); t._tm = setTimeout(() => { const pos = t.selectionStart; const k = t.dataset.k, i = t.dataset.offer; renderOffers(); const n = document.querySelector(`[data-offer="${i}"][data-k="${k}"]`); n.focus(); try{ n.setSelectionRange(pos,pos);}catch(_){} }, 500); }
+});
+function setStage(j, stage){
+  const before = phaseOf(j.stage); j.stage = stage;
+  if (phaseOf(stage) !== "Target" && !j.applied){ j.applied = iso(today()); autoLogApplied(j); }
+  save(); renderAll(); toast(`${j.company} → ${stage}. Folder: ${stageInfo(stage)[2]}`);
+}
+// drag & drop on board
+let dragId = null;
+board.addEventListener("dragstart", e => { const c = e.target.closest(".jc"); if (c){ dragId = c.dataset.id; e.dataTransfer.effectAllowed = "move"; } });
+board.addEventListener("dragover", e => { const l = e.target.closest(".lane"); if (l){ e.preventDefault(); l.classList.add("over"); } });
+board.addEventListener("dragleave", e => { const l = e.target.closest(".lane"); if (l) l.classList.remove("over"); });
+board.addEventListener("drop", e => { const l = e.target.closest(".lane"); if (!l || !dragId) return; e.preventDefault();
+  const j = db.jobs.find(x=>x.id===dragId); if (j && phaseOf(j.stage) !== l.dataset.phase) setStage(j, PHASE_DEFAULT[l.dataset.phase]); dragId = null; });
+
+["addJob","addJobTop"].forEach(id => document.getElementById(id).onclick = () => openJob());
+addInt.onclick = () => openInt(); addAct.onclick = () => openAct();
+["q","fPhase","fAction","hideClosed"].forEach(id => document.getElementById(id).addEventListener("input", renderTracker));
+[["setGoal","goal"],["setFollow","follow"],["setGhost","ghost"]].forEach(([id,k]) => document.getElementById(id).addEventListener("change", e => { db.settings[k] = Number(e.target.value)||db.settings[k]; save(); renderAll(); }));
+curSalary.addEventListener("change", e => { db.settings.curSalary = e.target.value; save(); renderOffers(); });
+
+// backup / restore / csv
+function download(name, text, type){ const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([text],{type})); a.download = name; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href); a.remove();},500); }
+exportJson.onclick = () => { download(`Job_Search_Backup_${iso(today())}.json`, JSON.stringify(db,null,2), "application/json"); toast("Backup downloaded"); };
+importBtn.onclick = () => importFile.click();
+importFile.onchange = async () => { const f = importFile.files[0]; if (!f) return;
+  try { const d = JSON.parse(await f.text()); if (!d.jobs) throw 0; db = d; normalize(); save(); renderAll(); toast("Restored from backup"); }
+  catch(e){ toast("That file isn't a Command Center backup"); } importFile.value = ""; };
+const csvCell = v => { const s = String(v ?? ""); return /[",\n]/.test(s) ? `"${s.replace(/"/g,'""')}"` : s; };
+csvTracker.onclick = () => {
+  const h = ["Company","Role","Stage","Phase","Priority","Date Found","Date Applied","Last Contact","Follow-Up Due","Next Action","Days Since Applied","Got Interview?","Work Type","Location","Salary Min","Salary Max","Source","Contact Name","Contact Email / Phone","Resume Version Sent","Cover Letter?","Job Posting URL","Command Center Folder","Notes"];
+  const rows = db.jobs.map(j => { const d = derive(j); return [j.company,j.role,j.stage,d.phase,j.priority,j.found,j.applied,j.lastContact,d.due?iso(d.due):"",d.action,d.since??"",d.gotInterview==null?"":d.gotInterview?"Yes":"No",j.workType,j.location,j.salMin,j.salMax,j.source,j.contact,j.contactInfo,j.resume,j.cover,j.url,d.folder,j.notes]; });
+  download(`Job_Search_Tracker_${iso(today())}.csv`, [h,...rows].map(r => r.map(csvCell).join(",")).join("\n"), "text/csv");
+};
+csvActivity.onclick = () => {
+  const rows = db.activity.map(a => [a.date, jobName(a.jobId), a.type, a.contact, a.notes]);
+  download(`Job_Search_Activity_${iso(today())}.csv`, [["Date","Company","Activity","Contact","Outcome / Notes"],...rows].map(r => r.map(csvCell).join(",")).join("\n"), "text/csv");
+};
+
+// theme
+themeBtn.onclick = () => { const r = document.documentElement; const dark = r.dataset.theme ? r.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+  r.dataset.theme = dark ? "light" : "dark"; try { localStorage.setItem(KEY+".theme", r.dataset.theme); } catch(e) {} };
+try { const th = localStorage.getItem(KEY+".theme"); if (th) document.documentElement.dataset.theme = th; } catch(e) {}
+
+let toastT; function toast(m){ const t = document.getElementById("toast"); t.textContent = m; t.classList.add("show"); clearTimeout(toastT); toastT = setTimeout(()=>t.classList.remove("show"), 2600); }
+
+document.getElementById("today").textContent = "Andrew Jafuta · " + new Date().toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric",year:"numeric"});
+load(); renderAll();
+try { const tab = localStorage.getItem(KEY+".tab"); if (tab) document.querySelector(`#tabs [data-tab="${tab}"]`)?.click(); } catch(e) {}
+})();
+</script>
+</body>
+</html>
